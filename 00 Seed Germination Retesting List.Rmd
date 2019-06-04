@@ -5,6 +5,11 @@ date: "6/4/2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# How to create a procedure for retesting, while still gaining data for publication?
+
+# Assumptions
+
++ Every quarter we can run 30 tests (120 test per year)
++ Each year we have around 20 rare seed collections
+
+```{r }
