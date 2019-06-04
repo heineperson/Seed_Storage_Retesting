@@ -1,2 +1,4 @@
-# Files to ignore
+# Folders to Ignore
 /Data
+# Caspio Authentication
+caspioSource.R

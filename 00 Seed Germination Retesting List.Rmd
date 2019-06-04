@@ -12,4 +12,12 @@ output: html_document
 + Every quarter we can run 30 tests (120 test per year)
 + Each year we have around 20 rare seed collections
 
-```{r }
+# Data Import
+```{r set up}
+library(data.table)
+
+seedAcc <- fread("Data/SeedCollectionDetails_2019-Jun-04_2151.csv")
+germTest <- fread("Data/Germination_2019-Jun-04_2151.csv")
+```
+
+# Make Table of Status for Each Accession
