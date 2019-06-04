@@ -25,8 +25,9 @@ source("Tokens/caspioSource.R")
 # Reading in caspio GET command (don't know if this works for things > 1000)
 source("caspioFunctions.R")
 
-germination <- caspio_get_all("Germination",login1)
-seedAcc <- caspio_get_all("SeedCollectionDetails",login1)
+# Read in Datasets
+germination <- caspio_get_table("Germination",login1)
+seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
 ```
 
 # Make Table of Status for Each Accession
