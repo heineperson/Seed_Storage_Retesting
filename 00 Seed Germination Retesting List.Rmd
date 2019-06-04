@@ -20,9 +20,13 @@ library(RCurl)
 library(rjson)
 library(jsonlite)
 
+# Reading in Caspio Token
+source("Tokens/caspioSource.R")
+# Reading in caspio GET command (don't know if this works for things > 1000)
+source("caspioFunctions.R")
 
-seedAcc <- fread("Data/SeedCollectionDetails_2019-Jun-04_2151.csv")
-germTest <- fread("Data/Germination_2019-Jun-04_2151.csv")
+germination <- caspio_get_all("Germination",login1)
+seedAcc <- caspio_get_all("SeedCollectionDetails",login1)
 ```
 
 # Make Table of Status for Each Accession

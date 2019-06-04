@@ -1,8 +1,4 @@
 # Caspio Functions
-
-caspio_get_all("Germination",login1)
-
-
 caspio_get_all = function(TableName,login1){
   # This table reads the table defined by TableName into R
   # Query parameters specify the row limit (default = 100 & max = 1000)
@@ -22,9 +18,9 @@ caspio_get_all = function(TableName,login1){
   #This converts dataframe to data.table
   table_DT = as.data.table(table_dataframe$Result)
   
-  
-  
   #while(dim(table_DT)[1]>=1000)
     return(table_DT)
+  print(dim(table_DT))
   
 }
+
