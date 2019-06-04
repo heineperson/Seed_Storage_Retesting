@@ -24,7 +24,7 @@ caspio_get_all = function(TableName,login1){
   
   
   
-  while(dim(table_DT_new)[1]>=1000)
+  #while(dim(table_DT)[1]>=1000)
     return(table_DT)
   
 }

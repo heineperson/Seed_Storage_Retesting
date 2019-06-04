@@ -15,6 +15,11 @@ output: html_document
 # Data Import
 ```{r set up}
 library(data.table)
+library(httr)
+library(RCurl)
+library(rjson)
+library(jsonlite)
+
 
 seedAcc <- fread("Data/SeedCollectionDetails_2019-Jun-04_2151.csv")
 germTest <- fread("Data/Germination_2019-Jun-04_2151.csv")
