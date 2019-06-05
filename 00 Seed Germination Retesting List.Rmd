@@ -30,12 +30,16 @@ germination <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
 germinationLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
 
+# Select Columns from desired datasets
 seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPSRank,LocalityName,DateSeedCollected,MaternalLinesSampled,DateFrozen)]
 ```
 
 # Make Table of Status for Each Accession
 
 ```{r status}
+# Summarize Germination Percent of Tests
+germTestMeans <- germinationLog[CensoredType=="Germinatn",.,by=c("GermTestID","SeedAccessionID")]
+
 # Make a Table of the Test Types Completed
 germinationSummary <- germination[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
                                     BaselineStatus=toString(Baseline[TestType=="Initial"])),by="SeedAccessionNumber"]
