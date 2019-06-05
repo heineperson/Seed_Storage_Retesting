@@ -38,9 +38,13 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 
 ```{r status}
 # Summarize Germination Percent of Tests
-germTestMelt <- melt(germTest, id.vars=c(),measure.vars = names(germTest)[14:23],variable.name="Rep",value.name="InitialCount")
-# Remove "_InitialCount" from rep column
-germTestMelt[,Rep:=gsub('_.*', '', Rep)]
+germTestMelt <- melt(germTest,
+                     id.vars=c("PK_ID","SeedAccessionNumber","TestType","Baseline","Pretreatment","CSWeeks","NumberSeedsPulled","NumGerminants","PercentGerm","StartDate","PullDate","FinalDate","Notes","SeedsPerRep"),
+                     measure.vars = names(germTest)[grepl("Init",names(germTest))]
+                     ,variable.name="Rep")
+                    # ,value.name="InitialCount") # this code is not performing correctly
+# Remove "_Init" from rep column
+germTestMelt[,Rep:=gsub('Init', '', Rep)]
 
 #melt germLog so that we have one observation for each rep
 germLogMelt <- melt(germLog, id.vars = c("GermLogID","GermTestID","DateChange", names(germLog)[15:18]), measure.vars = names(germLog)[5:14], variable.name="Rep",value.name="measurementCount",na.rm=T)
@@ -52,8 +56,8 @@ germLogMelt[,measurementDate:=as.Date(DateChange,format="%m/%d/%Y")]
 germMerge <- merge(germTestMelt, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"))
 
 # Count the Germinants
-germCountsbyRep = germMerge[,.(InitialCount=InitialCount[1], MaxCount = max(measurementCount,na.rm=T)), by=c("SeedAccessionNumber","PK_ID", "Rep","StartDate","FinalDate","TestType","TestStatus","TestTypeSp")]
-germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = sum(MaxCount), GermPercent=round(sum(MaxCount)/sum(InitialCount)*100)), by=c("SeedAccessionNumber","TestType","PK_ID","StartDate","FinalDate","TestStatus","TestTypeSp")]
+germCountsbyRep = germMerge[,.(InitialCount=as.numeric(InitialCount[1]), MaxCount = max(measurementCount,na.rm=T)), by=c("SeedAccessionNumber","PK_ID", "Rep","StartDate","FinalDate","TestType")]
+germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = sum(MaxCount), GermPercent=round(sum(MaxCount)/sum(InitialCount)*100)), by=c("SeedAccessionNumber","TestType","PK_ID","StartDate","FinalDate")]
 
 # Make a Table of the Test Types Completed
 germinationSummary <- germination[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
