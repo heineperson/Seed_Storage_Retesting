@@ -83,7 +83,7 @@ germCountsbyTest <- merge(germCountsbyTest, germTest[,.(PK_ID, StartDate,FinalDa
 
 ## Make a Table of the Test Types Completed
 germinationSummary <- germCountsbyTest[,.(BaselineYN=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
-                                       BaselineStatus=toString(Baseline[TestType=="Initial"]),
+                                       BaselineStatus=toString(unique(Baseline[TestType=="Initial"])),
                                        BaselinePercent=toString(GermPercent[TestType=="Initial"]),
                                        FollowUpYN=ifelse(grepl("Follow-up",toString(TestType)),"Yes","No"),
                                        FollowUpPercent=toString(GermPercent[TestType=="Follow-up"])),by="SeedAccessionNumber"]
@@ -99,13 +99,19 @@ overallSummary[,DateFrozen:=as.Date(gsub("T00:00:00","",DateFrozen))]
 overallSummary[is.na(CNPSRank),CNPSRank:="No Rank"]
 overallSummary[is.na(BaselineYN),BaselineYN:="No"]
 
-datatable(overallSummary)
+## Converting CNPS so that it is easier to sort 
+overallSummary[grepl("1B",CNPSRank),CNPSRank:="1B"]
+overallSummary[grepl("2B",CNPSRank),CNPSRank:="2B"]
+overallSummary[grepl("3",CNPSRank),CNPSRank:="3"]
+overallSummary[grepl("4",CNPSRank),CNPSRank:="3"]
 
+
+datatable(overallSummary[,.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank, Local=LocalityName, DateFrozen,BaselineYN,BaselineType=BaselineStatus,FollowUpYN)])
 ```
 
 # Fresh Baseline Priorities 
 
-I'm assuming we don't have fresh seed for anything before 2015, so this list only reflects accessions with no baselines after that point. 
+Is there a particular date before which we have no fresh seed? I am assuming that we have no fresh seed from before 2015 here. I am prioritizing accessions by CNPS rank and then by collection date. 
 
 ```{r fresh priorities, message=FALSE, warning=FALSE}
 datatable(overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-01-01",.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank,LocalityName,Collected=DateSeedCollected,Frozen=DateFrozen)][order(CNPSRank,Collected)])
@@ -113,5 +119,6 @@ datatable(overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-01-01",.(Acc
 
 # Frozen Priorities
 
+We will most likely
 ```{r status, message=FALSE, warning=FALSE}
 ```
