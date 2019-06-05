@@ -35,7 +35,7 @@ germLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
 seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPSRank,LocalityName,DateSeedCollected,MaternalLinesSampled,DateFrozen)]
 ```
 
-# Make Table of Status for Each Accession
+# Make Table of Test Status for Each Accession
 
 ```{r status, message=FALSE, warning=FALSE}
 
@@ -89,17 +89,29 @@ germinationSummary <- germCountsbyTest[,.(BaselineYN=ifelse(grepl("Initial",toSt
                                        FollowUpPercent=toString(GermPercent[TestType=="Follow-up"])),by="SeedAccessionNumber"]
 
 ## Add this table to overall accession table
-overallSummary <- merge(seedAccLim,germinationSummary,by="SeedAccessionNumber")
+overallSummary <- merge(seedAccLim,germinationSummary,by="SeedAccessionNumber",all.x=T)
 
 ## Fixing dates
 overallSummary[,DateSeedCollected:=as.Date(gsub("T00:00:00","",DateSeedCollected))]
 overallSummary[,DateFrozen:=as.Date(gsub("T00:00:00","",DateFrozen))]
 
+## Change aspects to allow sorting
+overallSummary[is.na(CNPSRank),CNPSRank:="No Rank"]
+overallSummary[is.na(BaselineYN),BaselineYN:="No"]
+
 datatable(overallSummary)
 
 ```
 
-# Fresh Baseline Priorities
+# Fresh Baseline Priorities 
 
+I'm assuming we don't have fresh seed for anything before 2015, so this list only reflects accessions with no baselines after that point. 
+
+```{r fresh priorities, message=FALSE, warning=FALSE}
+datatable(overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-01-01",.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank,LocalityName,Collected=DateSeedCollected,Frozen=DateFrozen)][order(CNPSRank,Collected)])
+```
 
 # Frozen Priorities
+
+```{r status, message=FALSE, warning=FALSE}
+```
