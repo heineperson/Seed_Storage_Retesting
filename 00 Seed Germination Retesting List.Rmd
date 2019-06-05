@@ -55,12 +55,13 @@ germTestInitOld[,Rep:="Old"]
 # Bind two initial tests together
 germTestLong <- rbind(germTestInitLong,germTestInitOld,fill=T)
 
-## Reshaping germination Log
+
+## Reshaping Germination Log for New tests
 # melt germLog so that we have one observation for each rep
 germLogMelt <- melt(germLog, id.vars = c("GermLogID","GermTestID","DateChange", names(germLog)[15:18]), measure.vars = names(germLog)[5:14], variable.name="Rep",value.name="measurementCount",na.rm=T)
+
 # Remove "_Count" from rep column
 germLogMelt[,Rep:=gsub('_.*', '', Rep)]
-germLogMelt[,measurementDate:=as.Date(DateChange,format="%m/%d/%Y")]
 
 # Merge together log and germ tests
 germMerge <- merge(germTestLong, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"), all.x=T)
@@ -76,15 +77,17 @@ germCountsbyTest[,GermPercent:=round((Germinants)/(SeedsTested)*100)]
 germCountsbyTest[,NumGerminantsOld:=NULL]
 germCountsbyTest[,GerminantsNew:=NULL]
 
-## Merge back on important 
+## Merge back on important fields
 germCountsbyTest <- merge(germCountsbyTest, germTest[,.(PK_ID, StartDate,FinalDate,TestType, Baseline)], by="PK_ID")
 
-# Make a Table of the Test Types Completed
-germinationSummary <- germCountsbyTest[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
+## Make a Table of the Test Types Completed
+germinationSummary <- germCountsbyTest[,.(BaselineYN=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
                                        BaselineStatus=toString(Baseline[TestType=="Initial"]),
-                                       BaselinePercent=toString(GermPercent)),by="SeedAccessionNumber"]
+                                       BaselinePercent=toString(GermPercent[TestType=="Initial"]),
+                                       FollowUpYN=ifelse(grepl("Follow-up",toString(TestType)),"Yes","No"),
+                                       FollowUpPercent=toString(GermPercent[TestType=="Follow-up"])),by="SeedAccessionNumber"]
 
-# Add this table to overall accession table
-overallSummary <- 
+## Add this table to overall accession table
+overallSummary <- merge(seedAccLim,germinationSummary,by="SeedAccessionNumber")
 
 ```
