@@ -46,6 +46,7 @@ germTestMelt <- melt(germTest,
 # Remove "_Init" from rep column
 germTestMelt[,Rep:=gsub('Init', '', Rep)]
 
+
 #melt germLog so that we have one observation for each rep
 germLogMelt <- melt(germLog, id.vars = c("GermLogID","GermTestID","DateChange", names(germLog)[15:18]), measure.vars = names(germLog)[5:14], variable.name="Rep",value.name="measurementCount",na.rm=T)
 # Remove "_Count" from rep column
