@@ -26,9 +26,9 @@ source("Tokens/caspioSource.R")
 source("caspioFunctions.R")
 
 # Read in Datasets
-germination <- caspio_get_table("Germination",login1)
+germTest <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
-germinationLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
+germLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
 
 # Select Columns from desired datasets
 seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPSRank,LocalityName,DateSeedCollected,MaternalLinesSampled,DateFrozen)]
@@ -38,7 +38,22 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 
 ```{r status}
 # Summarize Germination Percent of Tests
-germTestMeans <- germinationLog[CensoredType=="Germinatn",.,by=c("GermTestID","SeedAccessionID")]
+germTestMelt <- melt(germTest, id.vars=c(),measure.vars = names(germTest)[14:23],variable.name="Rep",value.name="InitialCount")
+# Remove "_InitialCount" from rep column
+germTestMelt[,Rep:=gsub('_.*', '', Rep)]
+
+#melt germLog so that we have one observation for each rep
+germLogMelt <- melt(germLog, id.vars = c("GermLogID","GermTestID","DateChange", names(germLog)[15:18]), measure.vars = names(germLog)[5:14], variable.name="Rep",value.name="measurementCount",na.rm=T)
+# Remove "_Count" from rep column
+germLogMelt[,Rep:=gsub('_.*', '', Rep)]
+germLogMelt[,measurementDate:=as.Date(DateChange,format="%m/%d/%Y")]
+
+# Merge together log and germ tests
+germMerge <- merge(germTestMelt, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"))
+
+# Count the Germinants
+germCountsbyRep = germMerge[,.(InitialCount=InitialCount[1], MaxCount = max(measurementCount,na.rm=T)), by=c("SeedAccessionNumber","PK_ID", "Rep","StartDate","FinalDate","TestType","TestStatus","TestTypeSp")]
+germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = sum(MaxCount), GermPercent=round(sum(MaxCount)/sum(InitialCount)*100)), by=c("SeedAccessionNumber","TestType","PK_ID","StartDate","FinalDate","TestStatus","TestTypeSp")]
 
 # Make a Table of the Test Types Completed
 germinationSummary <- germination[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
