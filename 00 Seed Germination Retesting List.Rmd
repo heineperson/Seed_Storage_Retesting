@@ -28,6 +28,7 @@ source("caspioFunctions.R")
 # Read in Datasets
 germination <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
+germinationLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
 
 seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPSRank,LocalityName,DateSeedCollected,MaternalLinesSampled,DateFrozen)]
 ```
@@ -36,6 +37,7 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 
 ```{r status}
 # Make a Table of the Test Types Completed
-germinationSummary <- germination[,.(Initial=ifelse()),by="SeedAccessionNumber"]
+germinationSummary <- germination[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
+                                    BaselineStatus=toString(Baseline[TestType=="Initial"])),by="SeedAccessionNumber"]
 
 ```
