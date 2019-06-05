@@ -41,8 +41,8 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 germTestMelt <- melt(germTest,
                      id.vars=c("PK_ID","SeedAccessionNumber","TestType","Baseline","Pretreatment","CSWeeks","NumberSeedsPulled","NumGerminants","PercentGerm","StartDate","PullDate","FinalDate","Notes","SeedsPerRep"),
                      measure.vars = names(germTest)[grepl("Init",names(germTest))]
-                     ,variable.name="Rep")
-                    # ,value.name="InitialCount") # this code is not performing correctly
+                     ,variable.name="Rep"
+                    , value.name="InitialCount") # this code is not performing correctly
 # Remove "_Init" from rep column
 germTestMelt[,Rep:=gsub('Init', '', Rep)]
 
@@ -53,14 +53,14 @@ germLogMelt[,Rep:=gsub('_.*', '', Rep)]
 germLogMelt[,measurementDate:=as.Date(DateChange,format="%m/%d/%Y")]
 
 # Merge together log and germ tests
-germMerge <- merge(germTestMelt, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"))
+germMerge <- merge(germTestMelt, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"), all.x=T)
 
 # Count the Germinants
-germCountsbyRep = germMerge[,.(InitialCount=as.numeric(InitialCount[1]), MaxCount = max(measurementCount,na.rm=T)), by=c("SeedAccessionNumber","PK_ID", "Rep","StartDate","FinalDate","TestType")]
-germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = sum(MaxCount), GermPercent=round(sum(MaxCount)/sum(InitialCount)*100)), by=c("SeedAccessionNumber","TestType","PK_ID","StartDate","FinalDate")]
+germCountsbyRep = germMerge[,.(InitialCount=as.numeric(InitialCount[1]), MaxCount = max(as.numeric(measurementCount),na.rm=T)), by=c("SeedAccessionNumber","PK_ID", "Rep","StartDate","FinalDate","TestType","Baseline")]
+germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = sum(MaxCount), GermPercent=round(sum(MaxCount)/sum(InitialCount)*100)), by=c("SeedAccessionNumber","TestType","PK_ID","StartDate","FinalDate","Baseline")]
 
 # Make a Table of the Test Types Completed
-germinationSummary <- germination[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
+germinationSummary <- germCountsbyTest[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
                                     BaselineStatus=toString(Baseline[TestType=="Initial"])),by="SeedAccessionNumber"]
 
 ```
