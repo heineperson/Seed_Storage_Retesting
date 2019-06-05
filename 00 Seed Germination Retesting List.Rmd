@@ -19,13 +19,14 @@ library(httr)
 library(RCurl)
 library(rjson)
 library(jsonlite)
+library(DT)
 
 # Reading in Caspio Token
 source("Tokens/caspioSource.R")
 # Reading in caspio GET command (don't know if this works for things > 1000)
 source("caspioFunctions.R")
 
-# Read in Datasets
+# Read in Datasets from Caspio API where possible, but also from static sources where necessary
 germTest <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
 germLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
@@ -36,7 +37,7 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 
 # Make Table of Status for Each Accession
 
-```{r status}
+```{r status, message=FALSE, warning=FALSE}
 
 ## Finding inital counts of germinants
 # Summarize Germination Test Initial Counts for those with initial values in the initital count columns (new database format)
@@ -66,9 +67,9 @@ germLogMelt[,Rep:=gsub('_.*', '', Rep)]
 # Merge together log and germ tests
 germMerge <- merge(germTestLong, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"), all.x=T)
 
-## Summing Germination for Both Cases
-# Count the Germinants Per Rep
-germCountsbyRep = germMerge[,.(InitialCount=(InitialCount[1]), MaxCount = max(as.numeric(measurementCount),na.rm=T),NumGerminantsOld=NumGerminantsOld[1]), by=c("SeedAccessionNumber","PK_ID", "Rep")]
+## Summing Germination for Both Old & New Test Types
+# Count the Germinants Per Rep - Need to fix the creation of Infinity
+germCountsbyRep = germMerge[,.(InitialCount=(InitialCount[1]), MaxCount = max(as.numeric(measurementCount),na.rm=T),NumGerminantsOld=NumGerminantsOld[1]), by=c("SeedAccessionNumber","PK_ID", "Rep")] 
 # Summarizing Germinants by Test (taking into account old tests)
 germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), GerminantsNew =sum(MaxCount,na.rm=T),NumGerminantsOld=NumGerminantsOld[1] ), by=c("SeedAccessionNumber","PK_ID")]
 # Calculate Percent Germination
@@ -90,4 +91,15 @@ germinationSummary <- germCountsbyTest[,.(BaselineYN=ifelse(grepl("Initial",toSt
 ## Add this table to overall accession table
 overallSummary <- merge(seedAccLim,germinationSummary,by="SeedAccessionNumber")
 
+## Fixing dates
+overallSummary[,DateSeedCollected:=as.Date(gsub("T00:00:00","",DateSeedCollected))]
+overallSummary[,DateFrozen:=as.Date(gsub("T00:00:00","",DateFrozen))]
+
+datatable(overallSummary)
+
 ```
+
+# Fresh Baseline Priorities
+
+
+# Frozen Priorities
