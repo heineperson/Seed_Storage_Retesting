@@ -28,6 +28,14 @@ source("caspioFunctions.R")
 # Read in Datasets
 germination <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
+
+seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPSRank,LocalityName,DateSeedCollected,MaternalLinesSampled,DateFrozen)]
 ```
 
 # Make Table of Status for Each Accession
+
+```{r status}
+# Make a Table of the Test Types Completed
+germinationSummary <- germination[,.(Initial=ifelse()),by="SeedAccessionNumber"]
+
+```
