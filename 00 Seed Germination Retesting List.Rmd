@@ -65,16 +65,26 @@ germLogMelt[,measurementDate:=as.Date(DateChange,format="%m/%d/%Y")]
 # Merge together log and germ tests
 germMerge <- merge(germTestLong, germLogMelt, by.x=c("PK_ID","Rep"), by.y=c("GermTestID","Rep"), all.x=T)
 
+## Summing Germination for Both Cases
 # Count the Germinants Per Rep
 germCountsbyRep = germMerge[,.(InitialCount=(InitialCount[1]), MaxCount = max(as.numeric(measurementCount),na.rm=T),NumGerminantsOld=NumGerminantsOld[1]), by=c("SeedAccessionNumber","PK_ID", "Rep")]
 # Summarizing Germinants by Test (taking into account old tests)
-germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), Germinants = ifelse(is.na(NumGerminantsOld), sum(MaxCount),as.numeric(NumGerminantsOld))), by=c("SeedAccessionNumber","PK_ID")]
+germCountsbyTest  = germCountsbyRep[,.(SeedsTested=sum(InitialCount), GerminantsNew =sum(MaxCount,na.rm=T),NumGerminantsOld=NumGerminantsOld[1] ), by=c("SeedAccessionNumber","PK_ID")]
 # Calculate Percent Germination
-germCountsbyTest[,GermPercent:=round(sum(Germinants)/sum(SeedsTested)*100)]
+germCountsbyTest[,Germinants:=ifelse(GerminantsNew==-Inf, NumGerminantsOld,GerminantsNew)]
+germCountsbyTest[,GermPercent:=round((Germinants)/(SeedsTested)*100)]
+germCountsbyTest[,NumGerminantsOld:=NULL]
+germCountsbyTest[,GerminantsNew:=NULL]
+
+## Merge back on important 
+germCountsbyTest <- merge(germCountsbyTest, germTest[,.(PK_ID, StartDate,FinalDate,TestType, Baseline)], by="PK_ID")
 
 # Make a Table of the Test Types Completed
 germinationSummary <- germCountsbyTest[,.(Baseline=ifelse(grepl("Initial",toString(TestType)),"Yes","No"), 
-                                 
-                                       BaselineStatus=toString(Baseline[TestType=="Initial"])),by="SeedAccessionNumber"]
+                                       BaselineStatus=toString(Baseline[TestType=="Initial"]),
+                                       BaselinePercent=toString(GermPercent)),by="SeedAccessionNumber"]
+
+# Add this table to overall accession table
+overallSummary <- 
 
 ```
