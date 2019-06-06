@@ -37,7 +37,7 @@ seedAccLim <- seedAcc[Deaccessioned==0,.(SeedAccessionNumber,ScientificName,CNPS
 
 # Make Table of Test Status for Each Accession
 
-```{r status, message=FALSE, warning=FALSE}
+```{r status1, message=FALSE, warning=FALSE}
 
 ## Finding inital counts of germinants
 # Summarize Germination Test Initial Counts for those with initial values in the initital count columns (new database format)
@@ -109,9 +109,9 @@ overallSummary[grepl("4",CNPSRank),CNPSRank:="3"]
 datatable(overallSummary[,.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank, Local=LocalityName, DateFrozen,BaselineYN,BaselineType=BaselineStatus,FollowUpYN)])
 ```
 
-# Priorities for Fresh Testing Summer 2018
+# Priorities for Fresh Testing Summer 2019
 
-I think the fastest way to get good retesting is to prioritize fresh testing of **rare** accessions that were frozen in 2018 that are due for retesting in 2018. Ideally, we can start 
+I think the fastest way to get good retesting is to prioritize fresh testing of **rare** accessions that were frozen in 2018 that are due for retesting in 2018. Ideally, we do first year retests of the accession frozen in 2018 and then slowly work our way backwards to test the rest of the rare accessions over time? What do you think?
 
 Is there a particular date before which we have no fresh seed? I am assuming that we have no fresh seed from before 2015 here. I am prioritizing accessions by CNPS rank and then by collection date. In total, there are 64 recent accessions with no fresh test
 
@@ -119,6 +119,7 @@ Is there a particular date before which we have no fresh seed? I am assuming tha
 # Prioritizing 2018 accessions first
 overallSummary[,PrioritySort:=ifelse(year(DateFrozen)=="2018",1,2)]
 overallSummary[is.na(PrioritySort),PrioritySort:=ifelse( year(DateSeedCollected)=="2018",1.5,2)]
+overallSummary[is.na(PrioritySort),PrioritySort:=2]
 
 setorder(overallSummary,PrioritySort,DateFrozen,CNPSRank,DateSeedCollected)
 
@@ -126,14 +127,26 @@ priorityTableFresh <- overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-
 
 # Write out Priority Table
 currentDate <- Sys.Date() 
-write.csv(priorityTableFresh,paste0("priorityTableFresh-", currentDate,".csv"))
+write.csv(priorityTableFresh,paste0("Data/priorityTableFresh-", currentDate,".csv"))
 
+# Printing Table for View
 datatable(priorityTableFresh)
 
 ```
 
-# Frozen Priorities
+# Frozen Priorities for Fall 2019
 
-We will most likely
+We want to start by retesting the rare accessions due for a 1 year retest in 2019. This list is similar to the fresh priority list except that it obviously includes accessions that already have baseline tests. 
+
 ```{r status, message=FALSE, warning=FALSE}
+
+priorityTableFrozen <- overallSummary[CNPSRank!="No Rank",.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank,LocalityName,BaselineYN,Collected=DateSeedCollected,PrioritySort, Frozen=DateFrozen)]
+
+# Write out Priority Table
+currentDate <- Sys.Date() 
+write.csv(priorityTableFrozen,paste0("Data/priorityTableFrozen-", currentDate,".csv"))
+
+# Printing Table for View
+datatable(priorityTableFrozen)
+
 ```
