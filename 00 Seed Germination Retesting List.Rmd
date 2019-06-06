@@ -13,7 +13,7 @@ output: html_document
 + Each year we have around 20 rare seed collections
 
 # Data Import
-```{r set up}
+```{r set up, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(data.table)
 library(httr)
 library(RCurl)
@@ -109,12 +109,27 @@ overallSummary[grepl("4",CNPSRank),CNPSRank:="3"]
 datatable(overallSummary[,.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank, Local=LocalityName, DateFrozen,BaselineYN,BaselineType=BaselineStatus,FollowUpYN)])
 ```
 
-# Fresh Baseline Priorities 
+# Priorities for Fresh Testing Summer 2018
 
-Is there a particular date before which we have no fresh seed? I am assuming that we have no fresh seed from before 2015 here. I am prioritizing accessions by CNPS rank and then by collection date. 
+I think the fastest way to get good retesting is to prioritize fresh testing of **rare** accessions that were frozen in 2018 that are due for retesting in 2018. Ideally, we can start 
+
+Is there a particular date before which we have no fresh seed? I am assuming that we have no fresh seed from before 2015 here. I am prioritizing accessions by CNPS rank and then by collection date. In total, there are 64 recent accessions with no fresh test
 
 ```{r fresh priorities, message=FALSE, warning=FALSE}
-datatable(overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-01-01",.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank,LocalityName,Collected=DateSeedCollected,Frozen=DateFrozen)][order(CNPSRank,Collected)])
+# Prioritizing 2018 accessions first
+overallSummary[,PrioritySort:=ifelse(year(DateFrozen)=="2018",1,2)]
+overallSummary[is.na(PrioritySort),PrioritySort:=ifelse( year(DateSeedCollected)=="2018",1.5,2)]
+
+setorder(overallSummary,PrioritySort,DateFrozen,CNPSRank,DateSeedCollected)
+
+priorityTableFresh <- overallSummary[BaselineYN=="No" & DateSeedCollected>"2015-01-01" & CNPSRank!="No Rank",.(Acc=SeedAccessionNumber,Spp=ScientificName,CNPSRank,LocalityName,Collected=DateSeedCollected, Frozen=DateFrozen)]
+
+# Write out Priority Table
+currentDate <- Sys.Date() 
+write.csv(priorityTableFresh,paste0("priorityTableFresh-", currentDate,".csv"))
+
+datatable(priorityTableFresh)
+
 ```
 
 # Frozen Priorities
