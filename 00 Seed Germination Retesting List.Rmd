@@ -29,6 +29,7 @@ source("caspioFunctions.R")
 # Read in Datasets from Caspio API where possible, but also from static sources where necessary
 germTest <- caspio_get_table("Germination",login1)
 seedAcc <- caspio_get_view("Seed_Accession_All_Info",login1)
+# This is not sourced because of API limits
 germLog <- fread("Data/GerminationLog_2019-Jun-04_2151.csv")
 
 # Select Columns from desired datasets
