@@ -16,7 +16,7 @@ caspio_get_table = function(TableName,login1){
   # This converts JSON Object to text
   table_json = content(table_get, as="text")
   # This converts JSON Object to dataframe
-  table_dataframe = fromJSON(table_json,simplifyDataFrame=TRUE)
+  table_dataframe = jsonlite::fromJSON(table_json,simplifyDataFrame=TRUE)
   #This converts dataframe to data.table
   table_DT = as.data.table(table_dataframe$Result)
   
